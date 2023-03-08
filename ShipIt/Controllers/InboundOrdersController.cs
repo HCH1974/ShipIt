@@ -87,7 +87,7 @@ namespace ShipIt.Controllers
             Log.Info("Processing manifest: " + requestModel);
 
             var gtins = new List<string>();
-
+            //create gtins list of orderlines
             foreach (var orderLine in requestModel.OrderLines)
             {
                 if (gtins.Contains(orderLine.gtin))
