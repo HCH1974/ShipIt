@@ -15,10 +15,12 @@ namespace ShipIt.Repositories
         int GetCount();
         int GetWarehouseCount();
         EmployeeDataModel GetEmployeeByName(string name);
+        EmployeeDataModel GetEmployeeById(int employeeId);
         IEnumerable<EmployeeDataModel> GetEmployeesByWarehouseId(int warehouseId);
         EmployeeDataModel GetOperationsManager(int warehouseId);
         void AddEmployees(IEnumerable<Employee> employees);
         void RemoveEmployee(string name);
+        void RemoveEmployeeById(int employeeId);
     }
 
     public class EmployeeRepository : RepositoryBase, IEmployeeRepository
@@ -80,6 +82,13 @@ namespace ShipIt.Repositories
             string noProductWithIdErrorMessage = string.Format("No employees found with name: {0}", name);
             return base.RunSingleGetQuery(sql, reader => new EmployeeDataModel(reader),noProductWithIdErrorMessage, parameter);
         }
+        public EmployeeDataModel GetEmployeeById(int employeeId)
+        {
+            string sql = "SELECT name, w_id, role, ext FROM em WHERE id = @employeeId";
+            var parameter = new NpgsqlParameter("@employeeId", employeeId);
+            string noProductWithIdErrorMessage = string.Format("No employees found with ID: {0}", employeeId);
+            return base.RunSingleGetQuery(sql, reader => new EmployeeDataModel(reader),noProductWithIdErrorMessage, parameter);
+        }
 
         public IEnumerable<EmployeeDataModel> GetEmployeesByWarehouseId(int warehouseId)
         {
@@ -124,6 +133,21 @@ namespace ShipIt.Repositories
         {
             string sql = "DELETE FROM em WHERE name = @name";
             var parameter = new NpgsqlParameter("@name", name);
+            var rowsDeleted = RunSingleQueryAndReturnRecordsAffected(sql, parameter);
+            if (rowsDeleted == 0)
+            {
+                throw new NoSuchEntityException("Incorrect result size: expected 1, actual 0");
+            }
+            else if (rowsDeleted > 1)
+            {
+                throw new InvalidStateException("Unexpectedly deleted " + rowsDeleted + " rows, but expected a single update");
+            }
+        }
+
+            public void RemoveEmployeeById(int employeeId)
+        {
+            string sql = "DELETE FROM em WHERE id = @employeeId";
+            var parameter = new NpgsqlParameter("@employeeId", employeeId);
             var rowsDeleted = RunSingleQueryAndReturnRecordsAffected(sql, parameter);
             if (rowsDeleted == 0)
             {
