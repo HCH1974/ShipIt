@@ -24,7 +24,7 @@ namespace ShipIt.Controllers
 
        
         [HttpPost("")]
-        public int Post([FromBody] OutboundOrderRequestModel request)
+        public OutboundOrderResponse Post([FromBody] OutboundOrderRequestModel request)
         {
             Log.Info(String.Format("Processing outbound order: {0}", request));
 
@@ -99,11 +99,14 @@ namespace ShipIt.Controllers
          
             double totalWeight=0;
             double maxWeight=2000;
-            foreach (var lineItem in lineItems)
-            {var product = productDataModels.FirstOrDefault(p => p.Id.Equals(lineItem.ProductId));
+            List<ProductWeight> productWeights = new List<ProductWeight>;
+            foreach (var lineItem in lineItems){
+                var product = productDataModels.FirstOrDefault(p => p.Id.Equals(lineItem.ProductId));
                 totalWeight += (product.Weight)*(lineItem.Quantity);
+                productWeights.Add(new ProductWeight(lineItem.ProductId , totalWeight));
             }
-            return Convert.ToInt32(totalWeight/maxWeight);
+            
+           // return Convert.ToInt32(totalWeight/maxWeight);
         }
     }
 }

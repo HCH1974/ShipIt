@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using NUnit.Framework;
 using ShipIt.Controllers;
 using ShipIt.Exceptions;
@@ -56,7 +57,8 @@ namespace ShipItTest
                     }
                 }
             };
-
+         TestContext.Out.WriteLine("Message to write to log");
+        TestContext.WriteLine("Message to write to log");
             outboundOrderController.Post(outboundOrder);
 
             var stock = stockRepository.GetStockByWarehouseAndProductIds(WAREHOUSE_ID, new List<int>() { productId })[productId];
