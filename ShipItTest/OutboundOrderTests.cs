@@ -57,12 +57,30 @@ namespace ShipItTest
                     }
                 }
             };
-         TestContext.Out.WriteLine("Message to write to log");
-        TestContext.WriteLine("Message to write to log");
             outboundOrderController.Post(outboundOrder);
 
             var stock = stockRepository.GetStockByWarehouseAndProductIds(WAREHOUSE_ID, new List<int>() { productId })[productId];
             Assert.AreEqual(stock.held, 7);
+        }
+        [Test]
+        public void TestOutboundOrderTrucks()
+        {
+            onSetUp();
+            stockRepository.AddStock(WAREHOUSE_ID, new List<StockAlteration>() { new StockAlteration(productId, 10) });
+            var outboundOrder = new OutboundOrderRequestModel()
+            {
+                WarehouseId = WAREHOUSE_ID,
+                OrderLines = new List<OrderLine>()
+                {
+                    new OrderLine()
+                    {
+                        gtin = GTIN,
+                        quantity = 3
+                    }
+                }
+            };
+            OutboundOrderResponse outboundOrderResponse = outboundOrderController.Post(outboundOrder);
+            Assert.AreEqual(outboundOrderResponse.Trucks[0].TruckId, 1);
         }
 
         [Test]

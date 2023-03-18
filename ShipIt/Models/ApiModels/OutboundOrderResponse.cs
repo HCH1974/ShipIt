@@ -7,13 +7,10 @@ namespace ShipIt.Models.ApiModels
 {
     public class OutboundOrderResponse : Response
     {
-        public int TruckId { get; set; }
-        public StockAlteration StockAlteration { get; set;}
-        
-        public OutboundOrderResponse(int truckId , StockAlteration stockAlteration)
+        public List<Truck> Trucks { get; set; }
+        public OutboundOrderResponse(List<Truck> trucks)
         {
-            TruckId = truckId;
-            StockAlteration = stockAlteration;
+            Trucks = trucks;
         }
     }
 }

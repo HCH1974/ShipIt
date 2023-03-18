@@ -1,8 +1,8 @@
 ﻿﻿using System;
 using System.Collections.Generic;
 using System.Linq;
- using Microsoft.AspNetCore.Mvc;
- using ShipIt.Exceptions;
+using Microsoft.AspNetCore.Mvc;
+using ShipIt.Exceptions;
 using ShipIt.Models.ApiModels;
 using ShipIt.Repositories;
 
@@ -22,7 +22,7 @@ namespace ShipIt.Controllers
             _productRepository = productRepository;
         }
 
-       
+
         [HttpPost("")]
         public OutboundOrderResponse Post([FromBody] OutboundOrderRequestModel request)
         {
@@ -96,17 +96,36 @@ namespace ShipIt.Controllers
 
             _stockRepository.RemoveStock(request.WarehouseId, lineItems);
 
-         
-            double totalWeight=0;
-            double maxWeight=2000;
-            List<ProductWeight> productWeights = new List<ProductWeight>;
-            foreach (var lineItem in lineItems){
+            List<ProductWeight> productWeights = new List<ProductWeight>();
+            foreach (var lineItem in lineItems)
+            {
                 var product = productDataModels.FirstOrDefault(p => p.Id.Equals(lineItem.ProductId));
-                totalWeight += (product.Weight)*(lineItem.Quantity);
-                productWeights.Add(new ProductWeight(lineItem.ProductId , totalWeight));
+                productWeights.Add(new ProductWeight(lineItem.ProductId, (product.Weight) * (lineItem.Quantity), lineItem.Quantity));
             }
-            
-           // return Convert.ToInt32(totalWeight/maxWeight);
+            int truckId = 1;
+            List<Truck> trucks = new List<Truck>();
+            double currentTruckWeight = 0;
+            int count = 0;
+            foreach (var productWeight in productWeights)
+            {
+                if (currentTruckWeight + productWeight.TotalWeight <= 2000)
+                {
+                    currentTruckWeight += productWeight.TotalWeight;
+                    if (count == 0)
+                    {
+                        trucks.Add(new Truck(truckId, new List<StockAlteration>()));
+                    }
+                    trucks[truckId - 1].StockAlterations.Add(new StockAlteration(productWeight.ProductId, productWeight.Quantity));
+                }
+                else
+                {
+                    truckId++;
+                    currentTruckWeight = productWeight.TotalWeight;
+                    trucks.Add(new Truck(truckId, new List<StockAlteration>()));
+                    trucks[truckId - 1].StockAlterations.Add(new StockAlteration(productWeight.ProductId, productWeight.Quantity));
+                }
+            }
+            return new OutboundOrderResponse(trucks);
         }
     }
 }
